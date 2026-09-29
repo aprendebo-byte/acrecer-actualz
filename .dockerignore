@@ -1,0 +1,17 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.vscode/
+venv/
+env/
+ENV/
+.env
+*.env
+Media/*.xlsx
+*.xlsx
+~$*.xlsx
+staticfiles/

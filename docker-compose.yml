@@ -1,0 +1,69 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    restart: unless-stopped
+
+  web:
+    build: .
+    env_file: .env
+    environment:
+      # Dentro de la red de compose la DB es el servicio "db", no localhost.
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    ports:
+      # Gunicorn escucha en 8000 dentro del contenedor (docker/entrypoint.sh usa
+      # ${PORT:-8000}, y el usuario "app" no es root: no podría abrir el 80).
+      #
+      # En el servidor el 8080 es el upstream de nginx, que atiende
+      # actualizacion.acrecer.com en el 80. Por eso aquí NO se publica el 80: lo
+      # tiene nginx y el `up` fallaría con "address already in use". Si en local
+      # necesitas el 80 (p. ej. para el dev tunnel), añádelo en
+      # docker-compose.override.yml, que no se versiona.
+      - "8080:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  cron:
+    build: .
+    entrypoint: ["/app/docker/entrypoint-cron.sh"]
+    # El demonio cron necesita root; el servicio web sí corre como usuario "app".
+    user: root
+    env_file: .env
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      # Los informes xlsx sobreviven al reinicio del contenedor.
+      - media:/app/Media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  media:

@@ -1,0 +1,33 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+
+
+# Environments
+.env
+*.env
+*.venv
+venv/
+ENV/
+env/
+
+
+# IDEs and editors
+.vscode/
+
+
+# dotenv
+.env
+
+# virtualenv
+
+venv/
+
+
+
+
+*.xlsx
+*.log

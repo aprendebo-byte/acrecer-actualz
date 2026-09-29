@@ -1,0 +1,9 @@
+# Informe diario del historial de inventario a las 07:00 hora de Colombia.
+# CRON_TZ fija la zona del planificador; sin él, cron usaría UTC y el informe
+# saldría a las 02:00 locales.
+CRON_TZ=America/Bogota
+
+# La tarea carga primero el entorno volcado por entrypoint-cron.sh, porque cron
+# no hereda las variables del contenedor.
+0 7 * * * . /tmp/cron-env.sh; cd /app && /usr/local/bin/python manage.py enviar_informe >> /var/log/cron.log 2>&1
+# La línea en blanco final es obligatoria para cron.

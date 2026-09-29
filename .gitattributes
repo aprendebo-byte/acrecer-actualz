@@ -1,0 +1,8 @@
+# Los scripts que corren dentro de los contenedores Linux deben usar LF,
+# de lo contrario el shebang falla con "bad interpreter".
+*.sh text eol=lf
+docker/crontab text eol=lf
+docker/entrypoint*.sh text eol=lf
+
+# requirements.txt en UTF-8/LF para que pip pueda leerlo en el build.
+requirements.txt text eol=lf
